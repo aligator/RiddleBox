@@ -47,6 +47,12 @@ rca_margin_side  = 80;   // margin from left/right side
 // Display
 lid_open_angle = 100; // degrees, 0 = closed, 90 = open
 
+// Lock
+lock_ht=73;
+lock_width=13.1;
+lock_len=58;
+lock_shift=10;
+
 // ---------- Feature toggles ----------
 show_box_body     = true;
 show_lid          = true;
@@ -64,6 +70,8 @@ echo("Visible inner height (Z) =", inner_h, "mm");
 echo("Hidden drawer height (Z) =", hidden_h, "mm");
 echo("False bottom thickness (Z) =", false_bottom_th, "mm");
 echo("Total internal height (Z) =", inner_h + hidden_h + false_bottom_th, "mm");
+
+echo("lock space left", inner_h - lock_ht+lock_shift);
 
 // ---------- Modules ----------
 module box_body(){
@@ -86,6 +94,13 @@ module box_body(){
     translate([inner_len, wall_y, base_th])
         cube([false_bottom_holder_width, inner_w, hidden_h]);
 
+}
+
+module lock() {
+    translate([outer_len/2-lock_len/2,
+               wall_y+inner_w-lock_width,
+               base_th + hidden_h + false_bottom_th+inner_h - lock_ht + lock_shift])
+        cube([lock_len, lock_width, lock_ht], center=false);
 }
 
 module lid_block(){
@@ -178,6 +193,9 @@ module assembly(){
                    0,
                    base_th])
             color("peru") drawer();
+
+    // Lock vorne
+    color("gray") lock();
 }
 
 // ---------- Main ----------
