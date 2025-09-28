@@ -23,12 +23,17 @@ drawer_clear    = 1.0;  // clearance for drawer (mm)
 drawer_wall     = 3;    // wall thickness of drawer
 drawer_power_hole_d = 10;
 
+false_bottom_holder_width = 10;
+
+// Cable
+cable_cutout = 15;
+
 // Derived dimensions
 inner_len = outer_len - 2*wall_x;
 inner_w   = outer_w   - 2*wall_y;
 inner_h   = outer_h - base_th - lid_th - hidden_h - false_bottom_th;
 
-lid_cutout = lid_th - 6; // hollow inside lid, leave 6 mm material
+lid_cutout = 24;         // hollow inside lid
 lid_clear  = 0.6;        // clearance for lid/lip
 
 // RCA cutouts (lid)
@@ -75,6 +80,12 @@ module box_body(){
             translate([wall_x + inner_len/2 - drawer_len/2, -c0, base_th])
                 cube([drawer_len, wall_y+2+c0, hidden_h], center=false);
     }
+    
+    translate([wall_x, wall_y, base_th])
+        cube([false_bottom_holder_width, inner_w, hidden_h]);
+    translate([inner_len, wall_y, base_th])
+        cube([false_bottom_holder_width, inner_w, hidden_h]);
+
 }
 
 module lid_block(){
@@ -105,19 +116,27 @@ module drawer(){
                   inner_w+wall_y - drawer_wall*2,
                   hidden_h-drawer_clear], center=false);
 
-        // Magnet/pin power hole in front
+        // Power cable hole in front
         translate([(drawer_len-2*drawer_clear)/2,
                    drawer_wall+c0,
                    (hidden_h-drawer_clear)/2])
             rotate([90, 0, 0])
             cylinder(d=drawer_power_hole_d, h=drawer_wall+2*c0);
+        
+        // Cable
+        translate([-c0, drawer_wall-cable_cutout+inner_w+wall_y - drawer_wall*2, drawer_wall])
+        cube([drawer_wall+2*c0, cable_cutout, hidden_h+c0]);
     }
 }
 
 module false_bottom(){
     // Plate above the hidden drawer with clearance
     translate([wall_x+0.5, wall_y+0.5, base_th + hidden_h])
-        cube([inner_len-1, inner_w-1, false_bottom_th], center=false);
+        difference() {
+            cube([inner_len-1, inner_w-1, false_bottom_th], center=false);
+            translate([false_bottom_holder_width, 0, -c0])
+                cube([cable_cutout, cable_cutout, false_bottom_th+2*c0]);
+        }
 }
 
 // RCA cutout blocks (centered along Y axis of lid)
