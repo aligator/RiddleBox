@@ -1,57 +1,4 @@
-// Creative Deco wooden box with false bottom, secret drawer and RCA cutouts in lid
-// Outer size: 300 x 200 x 140 mm
-
-// ---------- Parameters ----------
-// Master dimensions
-outer_len = 300;     // outer length (X, mm)
-outer_w   = 200;     // outer width (Y, mm)
-outer_h   = 140;     // outer height (Z, mm)
-
-// Wall thickness
-wall_x = 12.5;       // left/right walls (X)
-wall_y = 12.5;       // front/back walls (Y)
-
-// Base and lid
-base_th = 10;        // bottom thickness
-lid_th  = 32;        // lid block thickness
-
-// Hidden compartment
-hidden_h        = 20;   // hidden drawer height (Z)
-false_bottom_th = 5;    // false bottom thickness
-drawer_len      = 120;  // drawer length in X direction (< inner_len)
-drawer_clear    = 1.0;  // clearance for drawer (mm)
-drawer_wall     = 3;    // wall thickness of drawer
-drawer_power_hole_d = 10;
-
-false_bottom_holder_width = 10;
-
-// Cable
-cable_cutout = 15;
-
-// Derived dimensions
-inner_len = outer_len - 2*wall_x;
-inner_w   = outer_w   - 2*wall_y;
-inner_h   = outer_h - base_th - lid_th - hidden_h - false_bottom_th;
-
-lid_cutout = 24;         // hollow inside lid
-lid_clear  = 0.6;        // clearance for lid/lip
-
-// RCA cutouts (lid)
-rca_hole_d = 12;         // hole diameter for RCA jacks
-rca_cols   = 2;          // number of columns per block
-rca_rows   = 5;          // number of rows per block
-rca_pitch_x = 20;        // spacing between columns
-rca_pitch_y = 20;        // spacing between rows
-rca_margin_side  = 80;   // margin from left/right side
-
-// Display
-lid_open_angle = 100; // degrees, 0 = closed, 90 = open
-
-// Lock
-lock_ht=73;
-lock_width=13.1;
-lock_len=58;
-lock_shift=10;
+// Wooden box with false bottom, secret drawer and RCA cutouts in lid
 
 // ---------- Feature toggles ----------
 show_box_body     = true;
@@ -60,6 +7,84 @@ show_false_bottom = true;
 show_drawer       = true;
 show_drawer_cut   = true;
 show_rca_cutouts  = true;
+
+// ---------- Parameters ----------
+// Master dimensions
+// outer length (X, mm)
+outer_len = 300;
+// outer width (Y, mm)
+outer_w   = 200;
+// outer height (Z, mm)
+outer_h   = 140;
+
+// Wall thickness
+// left/right walls (X)
+wall_x = 12.5;
+// front/back walls (Y)
+wall_y = 12.5;
+
+// Base and lid
+// bottom thickness
+base_th = 10;
+// lid block thickness
+lid_th  = 32;  
+
+
+// size of the false-bottom supports
+false_bottom_support_width = 10;
+
+
+// Hidden compartment
+// hidden drawer height (Z)
+hidden_h        = 20;
+// false bottom thickness
+false_bottom_th = 5;
+// drawer length in X direction (< inner_len)
+drawer_len      = 120;
+// clearance for drawer (mm)
+drawer_clear    = 1.0;
+// wall thickness of drawer
+drawer_wall     = 3;
+// hole for the power cable
+drawer_power_hole_d = 10;
+
+// Cable
+// Cable coutouts in the false bottom and the drawer
+cable_cutout = 15;
+
+// Derived dimensions
+inner_len = outer_len - 2*wall_x;
+inner_w   = outer_w   - 2*wall_y;
+inner_h   = outer_h - base_th - lid_th - hidden_h - false_bottom_th;
+
+// hollow inside lid
+lid_cutout = 24;
+// clearance for lid/lip
+lid_clear  = 0.6;
+
+// RCA cutouts (lid)
+// hole diameter for RCA jacks
+rca_hole_d = 12;
+// number of columns per block
+rca_cols   = 2;
+// number of rows per block
+rca_rows   = 5;
+// spacing between columns
+rca_pitch_x = 20;
+// spacing between rows
+rca_pitch_y = 20;
+// margin from left/right side
+rca_margin_side  = 80;
+
+// Display
+// degrees, 0 = closed, 100 = open
+lid_open_angle = 100; 
+
+// Electronic Lock height (only the base shape for vizualization)
+lock_ht=73;
+lock_width=13.1;
+lock_len=58;
+lock_shift=10;
 
 c0=0.01+0;
 
@@ -90,9 +115,9 @@ module box_body(){
     }
     
     translate([wall_x, wall_y, base_th])
-        cube([false_bottom_holder_width, inner_w, hidden_h]);
+        cube([false_bottom_support_width, inner_w, hidden_h]);
     translate([inner_len, wall_y, base_th])
-        cube([false_bottom_holder_width, inner_w, hidden_h]);
+        cube([false_bottom_support_width, inner_w, hidden_h]);
 
 }
 
@@ -149,7 +174,7 @@ module false_bottom(){
     translate([wall_x+0.5, wall_y+0.5, base_th + hidden_h])
         difference() {
             cube([inner_len-1, inner_w-1, false_bottom_th], center=false);
-            translate([false_bottom_holder_width, 0, -c0])
+            translate([false_bottom_support_width, 0, -c0])
                 cube([cable_cutout, cable_cutout, false_bottom_th+2*c0]);
         }
 }
