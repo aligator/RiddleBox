@@ -16,7 +16,7 @@ constexpr int PIN_BUTTON = 18;   // Button input
 constexpr int PIN_RELAY  = 26;   // Relay output
 
 // If not 0 the relay will be pulsed for the given ms. This is usefull for locks that need a short pulse only.
-constexpr int RELAY_PULSE = 0; //200; 
+constexpr int RELAY_PULSE = 200; //0; 
 
 MCP23017 mcp(I2C_ADDRESS);
 
@@ -64,7 +64,7 @@ const uint8_t config2[][2] = {
   {O_B3,I_C3}
 };
 
-// All available configs must be registered here.
+// All available configs must be regisMLCBbZ6s;>LK4aB/P4tered here.
 const uint8_t* configs[] = {
   (const uint8_t*)config0,
   (const uint8_t*)config1,
