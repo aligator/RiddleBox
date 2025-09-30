@@ -30,9 +30,9 @@
             "show_box_body": "true",
             "show_drawer": "true",
             "show_drawer_cut": "true",
-            "show_false_bottom": "false",
-            "show_lid": "false",
-            "show_lock": "false",
+            "show_false_bottom": "true",
+            "show_lid": "true",
+            "show_lock": "true",
             "show_rca_cutouts": "true",
             "wall_x": "10",
             "wall_y": "10"
