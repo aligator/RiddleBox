@@ -66,7 +66,7 @@ lid_cutout = 24;
 
 // RCA cutouts (lid)
 // hole diameter for RCA jacks
-rca_hole_d = 12;
+rca_hole_d = 8;
 // number of columns per block
 rca_cols   = 2;
 // number of rows per block
