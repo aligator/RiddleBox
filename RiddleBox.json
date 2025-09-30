@@ -1,0 +1,42 @@
+{
+    "parameterSets": {
+        "RealBox": {
+            "base_th": "10",
+            "cable_cutout": "15",
+            "drawer_clear": "1",
+            "drawer_len": "120",
+            "drawer_power_hole_d": "10",
+            "drawer_wall": "3",
+            "false_bottom_support_width": "10",
+            "false_bottom_th": "5",
+            "hidden_h": "20",
+            "lid_clear": "0.6",
+            "lid_cutout": "24",
+            "lid_open_angle": "100",
+            "lid_th": "32",
+            "lock_ht": "73",
+            "lock_len": "58",
+            "lock_shift": "10",
+            "lock_width": "13.1",
+            "outer_h": "140",
+            "outer_len": "300",
+            "outer_w": "200",
+            "rca_cols": "2",
+            "rca_hole_d": "12",
+            "rca_margin_side": "80",
+            "rca_pitch_x": "20",
+            "rca_pitch_y": "20",
+            "rca_rows": "5",
+            "show_box_body": "true",
+            "show_drawer": "true",
+            "show_drawer_cut": "true",
+            "show_false_bottom": "true",
+            "show_lid": "true",
+            "show_rca_cutouts": "true",
+            "wall_x": "12.5",
+            "wall_y": "12.5"
+        }
+    },
+    "parameterSets": "",
+    "fileFormatVersion": "1"
+}

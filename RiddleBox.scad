@@ -7,6 +7,7 @@ show_false_bottom = true;
 show_drawer       = true;
 show_drawer_cut   = true;
 show_rca_cutouts  = true;
+show_lock         = true;
 
 // ---------- Parameters ----------
 // Master dimensions
@@ -41,6 +42,8 @@ hidden_h        = 20;
 false_bottom_th = 5;
 // drawer length in X direction (< inner_len)
 drawer_len      = 120;
+// space between the drawer and the front wall. (For example to make space for the lock electronic if the lock goes into the false-bottom)
+drawer_y_space  = 14;
 // clearance for drawer (mm)
 drawer_clear    = 1.0;
 // wall thickness of drawer
@@ -59,8 +62,6 @@ inner_h   = outer_h - base_th - lid_th - hidden_h - false_bottom_th;
 
 // hollow inside lid
 lid_cutout = 24;
-// clearance for lid/lip
-lid_clear  = 0.6;
 
 // RCA cutouts (lid)
 // hole diameter for RCA jacks
@@ -133,8 +134,8 @@ module lid_block(){
         cube([outer_len, outer_w, lid_th], center=false);
 
         // Hollow inside lid
-        translate([wall_x-lid_clear/2, wall_y-lid_clear/2, -c0])
-            cube([inner_len+lid_clear, inner_w+lid_clear, lid_cutout+c0], center=false);
+        translate([wall_x, wall_y, -c0])
+            cube([inner_len, inner_w, lid_cutout+c0], center=false);
 
         // RCA cutouts in lid
         if (show_rca_cutouts)
@@ -147,13 +148,13 @@ module drawer(){
     difference(){
         // Outer size = hidden space minus clearance
         cube([drawer_len-2*drawer_clear,
-              inner_w + wall_y,
+              inner_w + wall_y - drawer_y_space,
               hidden_h-drawer_clear], center=false);
 
         // Inner hollow, top open
         translate([drawer_wall, drawer_wall, drawer_wall])
             cube([drawer_len-2*drawer_clear-2*drawer_wall,
-                  inner_w+wall_y - drawer_wall*2,
+                  inner_w+wall_y - drawer_wall*2 - drawer_y_space,
                   hidden_h-drawer_clear], center=false);
 
         // Power cable hole in front
@@ -164,19 +165,24 @@ module drawer(){
             cylinder(d=drawer_power_hole_d, h=drawer_wall+2*c0);
         
         // Cable
-        translate([-c0, drawer_wall-cable_cutout+inner_w+wall_y - drawer_wall*2, drawer_wall])
+        translate([-c0, drawer_wall-cable_cutout+inner_w+wall_y - drawer_wall*2 - drawer_y_space, drawer_wall])
         cube([drawer_wall+2*c0, cable_cutout, hidden_h+c0]);
     }
 }
 
 module false_bottom(){
     // Plate above the hidden drawer with clearance
-    translate([wall_x+0.5, wall_y+0.5, base_th + hidden_h])
-        difference() {
-            cube([inner_len-1, inner_w-1, false_bottom_th], center=false);
-            translate([false_bottom_support_width, 0, -c0])
-                cube([cable_cutout, cable_cutout, false_bottom_th+2*c0]);
+    difference() {
+        translate([wall_x+0.5, wall_y+0.5, base_th + hidden_h]) {
+            difference() {
+                cube([inner_len-1, inner_w-1, false_bottom_th], center=false);
+                translate([false_bottom_support_width, 0, -c0])
+                    cube([cable_cutout, cable_cutout, false_bottom_th+2*c0]);
+            }
         }
+        
+        lock();
+    }
 }
 
 // RCA cutout blocks (centered along Y axis of lid)
@@ -220,7 +226,8 @@ module assembly(){
             color("peru") drawer();
 
     // Lock vorne
-    color("gray") lock();
+    if (show_lock)
+        color("gray") lock();
 }
 
 // ---------- Main ----------
