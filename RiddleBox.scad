@@ -18,6 +18,9 @@ outer_w   = 200;
 // outer height (Z, mm)
 outer_h   = 140;
 
+// inner height (Z, mm)
+inner_h   = 85;
+
 // Wall thickness
 // left/right walls (X)
 wall_x = 12.5;
@@ -25,11 +28,9 @@ wall_x = 12.5;
 wall_y = 12.5;
 
 // Base and lid
-// bottom thickness
-base_th = 10;
 // lid block thickness
-lid_th  = 32;  
-
+lid_th  = 32;  // bottom thickness
+base_th = outer_h-inner_h-lid_th;
 
 // size of the false-bottom supports
 false_bottom_support_width = 10;
@@ -58,7 +59,7 @@ cable_cutout = 15;
 // Derived dimensions
 inner_len = outer_len - 2*wall_x;
 inner_w   = outer_w   - 2*wall_y;
-inner_h   = outer_h - base_th - lid_th - hidden_h - false_bottom_th;
+visible_inner_h   = outer_h - base_th - lid_th - hidden_h - false_bottom_th;
 
 // hollow inside lid
 lid_cutout = 24;
@@ -92,12 +93,12 @@ c0=0.01+0;
 // ---------- Dimension printout ----------
 echo("Inner length (X) =", inner_len, "mm");
 echo("Inner width (Y)  =", inner_w, "mm");
-echo("Visible inner height (Z) =", inner_h, "mm");
+echo("Visible inner height (Z) =", visible_inner_h, "mm");
 echo("Hidden drawer height (Z) =", hidden_h, "mm");
 echo("False bottom thickness (Z) =", false_bottom_th, "mm");
-echo("Total internal height (Z) =", inner_h + hidden_h + false_bottom_th, "mm");
+echo("Total internal height (Z) =", visible_inner_h + hidden_h + false_bottom_th, "mm");
 
-echo("lock space left", inner_h - lock_ht+lock_shift);
+echo("lock space left", visible_inner_h - lock_ht+lock_shift);
 
 // ---------- Modules ----------
 module box_body(){
@@ -125,7 +126,7 @@ module box_body(){
 module lock() {
     translate([outer_len/2-lock_len/2,
                wall_y+inner_w-lock_width,
-               base_th + hidden_h + false_bottom_th+inner_h - lock_ht + lock_shift])
+               base_th + hidden_h + false_bottom_th+visible_inner_h - lock_ht + lock_shift])
         cube([lock_len, lock_width, lock_ht], center=false);
 }
 
