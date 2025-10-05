@@ -9,39 +9,68 @@ constexpr int PIN_SCL    = 22;   // ESP32 SCL
 constexpr uint8_t I2C_ADDRESS = 0x20; // I2C Adress of the chip
 
 // Configuration i/o
-constexpr int PIN_LED    = 25;   // Status LED
+constexpr int PIN_LED    = 27;   // Status LED
 constexpr int PIN_BUTTON = 18;   // Button input
 
 // Action output
-constexpr int PIN_RELAY  = 26;   // Relay output
+constexpr int PIN_RELAY  = 25;   // Relay output
 
 // If not 0 the relay will be pulsed for the given ms. This is usefull for locks that need a short pulse only.
 constexpr int RELAY_PULSE = 200; //0; 
 
-MCP23017 mcp(I2C_ADDRESS);
+MCP23017 mcp_1(I2C_ADDRESS);
+MCP23017 mcp_2(I2C_ADDRESS + 1);
 
 // MCP Output pin configuration
 constexpr uint8_t O_A1 = 0;
-constexpr uint8_t O_A2 = 1;
-constexpr uint8_t O_A3 = 2;
-constexpr uint8_t O_A4 = 3;
-constexpr uint8_t O_B1 = 4;
-constexpr uint8_t O_B2 = 5;
-constexpr uint8_t O_B3 = 6;
+constexpr uint8_t O_B1 = 1;
+constexpr uint8_t O_A2 = 2;
+constexpr uint8_t O_B2 = 3;
+constexpr uint8_t O_A3 = 4;
+constexpr uint8_t O_B3 = 5;
+constexpr uint8_t O_A4 = 6;
 constexpr uint8_t O_B4 = 7;
-const uint8_t outputPins[] = {O_A1, O_A2, O_A3, O_A4, O_B1, O_B2, O_B3, O_B4};
+constexpr uint8_t O_A5 = 8;
+constexpr uint8_t O_B5 = 9;
+
+const uint8_t outputPins[] = {
+  0,  // O_A1
+  1,  // O_B1
+  2,  // O_A2
+  3,  // O_B2
+  4,  // O_A3  
+  5,  // O_B3
+  6,  // O_A4
+  7,  // O_B4
+  16, // O_A5 // 2nd io expander
+  17  // O_B5 // 2nd io expander
+};
 const int numOutputs = sizeof(outputPins) / sizeof(outputPins[0]);
 
 // MCP Input pin configuration
-constexpr uint8_t I_C1 = 8;
-constexpr uint8_t I_C2 = 9;
-constexpr uint8_t I_C3 = 10;
-constexpr uint8_t I_C4 = 11;
-constexpr uint8_t I_D1 = 12;
-constexpr uint8_t I_D2 = 13;
-constexpr uint8_t I_D3 = 14;
-constexpr uint8_t I_D4 = 15;
-const uint8_t inputPins[]  = {I_C1, I_C2, I_C3, I_C4, I_D1, I_D2, I_D3, I_D4};
+constexpr uint8_t I_C1 = 0;
+constexpr uint8_t I_D1 = 1;
+constexpr uint8_t I_C2 = 2;
+constexpr uint8_t I_D2 = 3;
+constexpr uint8_t I_C3 = 4;
+constexpr uint8_t I_D3 = 5;
+constexpr uint8_t I_C4 = 6;
+constexpr uint8_t I_D4 = 7;
+constexpr uint8_t I_C5 = 8;
+constexpr uint8_t I_D5 = 9;
+
+const uint8_t inputPins[]  = {
+  24, // I_C1 // 2nd io expander
+  25, // I_D1 // 2nd io expander
+  8,  // I_C2  
+  9,  // I_D2
+  10, // I_C3
+  11, // I_D3
+  12, // I_C4
+  13, // I_D4   
+  14, // I_C5
+  15  // I_D5
+};
 const int numInputs = sizeof(inputPins) / sizeof(inputPins[0]);
 
 
@@ -64,7 +93,7 @@ const uint8_t config2[][2] = {
   {O_B3,I_C3}
 };
 
-// All available configs must be regisMLCBbZ6s;>LK4aB/P4tered here.
+// All available configs must be registered here.
 const uint8_t* configs[] = {
   (const uint8_t*)config0,
   (const uint8_t*)config1,
@@ -85,20 +114,41 @@ unsigned long lastButtonMs = 0;
 
 bool relayOpen = false;
 
+/**
+ * Maps the pin to the mcp chip to be used.
+ */
+MCP23017 mapPinToMcp(uint8_t pin) {
+  if (pin <= 15) {
+    return mcp_1;
+  } else {
+    return mcp_2;
+  }
+}
+
+/**
+ * Maps the pin to the mcp chip pin (simple modulo)
+ */
+uint8_t mapMcpPin(uint8_t pin) {
+  return pin % 16;
+}
+
 void setup() {
   Serial.begin(115200);
   Wire.begin(PIN_SDA, PIN_SCL);
-  mcp.init();
+  mcp_1.init();
+  mcp_2.init();
 
   // Initialize outputs
   // Initialize them as inputs to prevent shortcuts done by connecting two outputs.
   // Only one output at a time is switched to output mode at a time when needed!
   for (int i = 0; i < numOutputs; i++) {
-    mcp.pinMode(outputPins[i], INPUT);
+    MCP23017 mcp = mapPinToMcp(outputPins[i]);
+    mcp.pinMode(mapMcpPin(outputPins[i]), INPUT);
   }
   // Initialize inputs (plain INPUT, external pull-downs required)
   for (int i = 0; i < numInputs; i++) {
-    mcp.pinMode(inputPins[i], INPUT);
+    MCP23017 mcp = mapPinToMcp(inputPins[i]);
+    mcp_1.pinMode(mapMcpPin(inputPins[i]), INPUT);
   }
 
   // Setup the other things.
@@ -137,7 +187,7 @@ void loop() {
   }
 
   // For debugging
-  //delay(1000);
+  // delay(1000);
 }
 
 // Test exactly one output-input pair
@@ -145,16 +195,19 @@ bool pairConnected(uint8_t outPin, uint8_t inPin) {
   
 
   // Drive selected output HIGH
-  mcp.pinMode(outPin, OUTPUT);
-  mcp.digitalWrite(outPin, HIGH);
+  MCP23017 mcp = mapPinToMcp(outPin);
+  uint8_t pin = mapMcpPin(outPin);
+  mcp.pinMode(pin, OUTPUT);
+  mcp.digitalWrite(pin, HIGH);
   delayMicroseconds(300);
 
   // Read input
-  int val = mcp.digitalRead(inPin);
+  MCP23017 mcp_read = mapPinToMcp(outPin);
+  int val = mcp_read.digitalRead(mapMcpPin(inPin));
 
   // Reset output back to high-Z
-  mcp.digitalWrite(outPin, LOW);
-  mcp.pinMode(outPin, INPUT);
+  mcp.digitalWrite(pin, LOW);
+  mcp.pinMode(pin, INPUT);
 
   return (val == HIGH);
 }
@@ -174,19 +227,19 @@ bool checkExactConfig(int cfgIndex) {
   bool activePairs[numOutputs][numInputs] = {false};
   for (int o = 0; o < numOutputs; ++o) {
     // Drive selected output HIGH
-    mcp.pinMode(outputPins[o], OUTPUT);
-    mcp.digitalWrite(outputPins[o], HIGH);
+    MCP23017 mcp = mapPinToMcp(outputPins[o]);
+    uint8_t pin = mapMcpPin(outputPins[o]);
+    mcp.pinMode(pin, OUTPUT);
+    mcp.digitalWrite(pin, HIGH);
     delayMicroseconds(300);
 
     for (int i = 0; i < numInputs; ++i) {
       // Read input
-      int val = mcp.digitalRead(inputPins[i]);
+      MCP23017 mcp_input = mapPinToMcp(inputPins[i]);
+      int val = mcp_input.digitalRead(mapMcpPin(inputPins[i]));
       if (val == HIGH) {
         activePairs[o][i] = true;
-        Serial.print(o);
-        Serial.print("-->");
-        Serial.print(i);
-        Serial.print("  O");
+        Serial.print("* O");
         Serial.print(outputPins[o]);
         Serial.print(" -> I");
         Serial.println(inputPins[i]);
@@ -196,19 +249,22 @@ bool checkExactConfig(int cfgIndex) {
     }
 
     // Reset output back to high-Z (short cut protection)
-    mcp.digitalWrite(outputPins[o], LOW);
-    mcp.pinMode(outputPins[o], INPUT);
+    mcp.digitalWrite(pin, LOW);
+    mcp.pinMode(pin, INPUT);
     delayMicroseconds(300);
   }
 
+  Serial.println("Check connections:");
+
   // Check if all required pairs are present
   for (int c = 0; c < len; ++c) {
-    uint8_t outPin = *(cfg + c*2 + 0);
-    uint8_t inPin  = (*(cfg + c*2 + 1))-8; // in pins are shifted by 8
-    Serial.print(outPin);
-    Serial.print("-->");
-    Serial.print(inPin);
-    if (!activePairs[outPin][inPin]) {
+    uint8_t outIndex = *(cfg + c*2 + 0);
+    uint8_t inIndex = *(cfg + c*2 + 1);
+    
+    uint8_t outPin = outputPins[outIndex];
+    uint8_t inPin  = inputPins[inIndex];
+
+    if (!activePairs[outIndex][inIndex]) {
       Serial.println("✘ Required pair missing!");
       Serial.print("  O");
       Serial.print(outPin);
@@ -224,9 +280,12 @@ bool checkExactConfig(int cfgIndex) {
       if (activePairs[o][i]) {
         bool required = false;
         for (int c = 0; c < len; ++c) {
-          uint8_t reqOut = *(cfg + c*2 + 0);
-          uint8_t reqIn  = *(cfg + c*2 + 1);
-          if (outputPins[o] == reqOut && inputPins[i] == reqIn) {
+          uint8_t outIndex = *(cfg + c*2 + 0);
+          uint8_t inIndex = *(cfg + c*2 + 1);
+          
+          uint8_t outPin = outputPins[outIndex];
+          uint8_t inPin  = inputPins[inIndex];
+          if (outputPins[o] == outPin && inputPins[i] == inPin) {
             required = true;
             break;
           }
