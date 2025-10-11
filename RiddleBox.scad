@@ -9,6 +9,8 @@ show_drawer_cut   = true;
 show_rca_cutouts  = true;
 show_lock         = true;
 
+show_only_false_bottom_lasercut = false;
+
 // ---------- Parameters ----------
 // Master dimensions
 // outer length (X, mm)
@@ -86,7 +88,9 @@ lid_open_angle = 100;
 lock_ht=73;
 lock_width=13.1;
 lock_len=58;
-lock_shift=10;
+lock_shift_up=0;
+
+lock_false_bottom_cutout_margin=1;
 
 c0=0.01+0;
 
@@ -98,7 +102,7 @@ echo("Hidden drawer height (Z) =", hidden_h, "mm");
 echo("False bottom thickness (Z) =", false_bottom_th, "mm");
 echo("Total internal height (Z) =", visible_inner_h + hidden_h + false_bottom_th, "mm");
 
-echo("lock space left", visible_inner_h - lock_ht+lock_shift);
+echo("lock space left", visible_inner_h - lock_ht+lock_shift_up);
 
 // ---------- Modules ----------
 module box_body(){
@@ -123,11 +127,11 @@ module box_body(){
 
 }
 
-module lock() {
-    translate([outer_len/2-lock_len/2,
-               wall_y+inner_w-lock_width,
-               base_th + hidden_h + false_bottom_th+visible_inner_h - lock_ht + lock_shift])
-        cube([lock_len, lock_width, lock_ht], center=false);
+module lock(margin=0) {
+    translate([outer_len/2-lock_len/2-margin,
+               wall_y+inner_w-lock_width-margin,
+               base_th + hidden_h + false_bottom_th+visible_inner_h - lock_ht + lock_shift_up])
+        cube([lock_len+margin*2, lock_width+margin*2, lock_ht], center=false);
 }
 
 module lid_block(){
@@ -182,8 +186,28 @@ module false_bottom(){
             }
         }
         
-        lock();
+        lock(lock_false_bottom_cutout_margin);
     }
+}
+
+
+module false_bottom(){
+    // Plate above the hidden drawer with clearance
+    difference() {
+        translate([wall_x+0.5, wall_y+0.5, base_th + hidden_h]) {
+            difference() {
+                cube([inner_len-1, inner_w-1, false_bottom_th], center=false);
+                translate([false_bottom_support_width, 0, -c0])
+                    cube([cable_cutout, cable_cutout, false_bottom_th+2*c0]);
+            }
+        }
+        
+        lock(lock_false_bottom_cutout_margin);
+    }
+}
+
+module false_bottom_lasercut() {
+    projection(cut = false) false_bottom();
 }
 
 // RCA cutout blocks (centered along Y axis of lid)
@@ -232,4 +256,8 @@ module assembly(){
 }
 
 // ---------- Main ----------
-assembly();
+if (!show_only_false_bottom_lasercut)
+    assembly();
+else
+    false_bottom_lasercut();
+
