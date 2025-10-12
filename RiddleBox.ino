@@ -18,6 +18,8 @@ constexpr int PIN_RELAY  = 25;   // Relay output
 // If not 0 the relay will be pulsed for the given ms. This is usefull for locks that need a short pulse only.
 constexpr int RELAY_PULSE = 200; //0; 
 
+constexpr int EMERGENCY_UNLOCK_MS = 3000;
+
 MCP23017 mcp_1(I2C_ADDRESS);
 MCP23017 mcp_2(I2C_ADDRESS + 1);
 
@@ -110,7 +112,7 @@ const int numConfigs = sizeof(configs)/sizeof(configs[0]);
 
 // ---- State ----
 int currentConfig = 0;
-unsigned long lastButtonMs = 0;
+unsigned long lastButtonMsStart = 0;
 
 bool relayOpen = false;
 
@@ -160,18 +162,7 @@ void setup() {
   Serial.println("RiddleBox is ready.");
 }
 
-void loop() {
-  // First check if the config switcher button was pressed. (debounced)
-  if (digitalRead(PIN_BUTTON) == LOW && millis() - lastButtonMs > 250) {
-    lastButtonMs = millis();
-    currentConfig = (currentConfig + 1) % numConfigs;
-    Serial.print("Switched to config ");
-    Serial.println(currentConfig);
-    showConfigNumber(currentConfig + 1);
-  }
-
-  // Then check all connections to find out if the lock is unlocked.
-  bool unlocked = checkExactConfig(currentConfig);
+void unlock(bool unlocked) {
   if (RELAY_PULSE == 0) {
     // Drive directly, as long as the lock is unlocked.
     digitalWrite(PIN_RELAY, unlocked ? HIGH : LOW);
@@ -185,6 +176,49 @@ void loop() {
       relayOpen = false;
     }
   }
+}
+
+void loop() {
+  unsigned long buttonPressedTime = millis() - lastButtonMsStart;
+  if (lastButtonMsStart != 0 && buttonPressedTime > EMERGENCY_UNLOCK_MS) {
+    // Signal that you have waited log enough to open the lock with emergency unlock
+    digitalWrite(PIN_LED, HIGH);
+  }
+
+  // First check if the config switcher button was pressed (pressed==LOW). (debounced)
+  if (digitalRead(PIN_BUTTON) == LOW) {
+    if (lastButtonMsStart == 0) {
+      lastButtonMsStart = millis();
+    }
+  } else {
+    if (lastButtonMsStart != 0) {
+      Serial.print("button pressed");
+      Serial.println(buttonPressedTime);
+      if (buttonPressedTime > EMERGENCY_UNLOCK_MS) {
+        digitalWrite(PIN_LED, LOW);
+
+        // Emergency unlock - press the button for more than 5 seconds
+        relayOpen = false;
+        unlock(true);
+      } else if (buttonPressedTime > 250) {
+        // Switch config if the button was pressed less than 5 seconds.
+        currentConfig = (currentConfig + 1) % numConfigs;
+        Serial.print("Switched to config ");
+        Serial.println(currentConfig);
+        showConfigNumber(currentConfig + 1);
+      }
+    }
+
+    lastButtonMsStart = 0;
+  }  
+
+  // Then check all connections to find out if the lock is unlocked.
+  bool unlocked = checkExactConfig(currentConfig);
+  if (unlocked && RELAY_PULSE != 0) {
+    // Wait a bit before unlocking.
+    delay(1000);
+  }
+  unlock(unlocked);
 
   // For debugging
   // delay(1000);
@@ -311,5 +345,4 @@ void showConfigNumber(int number) {
     digitalWrite(PIN_LED, HIGH); delay(180);
     digitalWrite(PIN_LED, LOW);  delay(180);
   }
-  delay(1000);
 }
