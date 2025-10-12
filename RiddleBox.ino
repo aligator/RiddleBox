@@ -62,10 +62,10 @@ constexpr uint8_t I_C5 = 8;
 constexpr uint8_t I_D5 = 9;
 
 const uint8_t inputPins[]  = {
-  24, // I_C1 // 2nd io expander
+  9, // I_C1 // 2nd io expander
   25, // I_D1 // 2nd io expander
   8,  // I_C2  
-  9,  // I_D2
+  24,  // I_D2
   10, // I_C3
   11, // I_D3
   12, // I_C4
@@ -221,7 +221,7 @@ void loop() {
   unlock(unlocked);
 
   // For debugging
-  // delay(1000);
+  //delay(1000);
 }
 
 // Test exactly one output-input pair
