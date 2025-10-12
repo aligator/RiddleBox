@@ -80,32 +80,33 @@ const int numInputs = sizeof(inputPins) / sizeof(inputPins[0]);
 // The first value must be an Output (O_)
 // The second value must be an Input (I_)
 const uint8_t config0[][2] = { 
-  {O_B3,I_C1}, 
-  {O_B4,I_C2}
+  {O_A1, I_D5},
+  {O_B2, I_D1},
+  {O_A3, I_C2},
+  {O_B4, I_D3},
+  {O_A5, I_C3}
 };
 const uint8_t config1[][2] = { 
-  {O_A1,I_C3},
-  {O_B2,I_C4},
-  {O_A2,I_D4}
-};
-const uint8_t config2[][2] = { 
-  {O_A3,I_D4},
-  {O_A4,I_D1},
-  {O_B4,I_D2},
-  {O_B3,I_C3}
+  {O_B1, I_D2},
+  {O_A1, I_C4},
+  {O_B2, I_D1},
+  {O_A2, I_D5},
+  {O_B3, I_C1},
+  {O_A3, I_C3},
+  {O_B4, I_C2},
+  {O_A4, I_D3},
+  {O_B5, I_D4}
 };
 
 // All available configs must be registered here.
 const uint8_t* configs[] = {
   (const uint8_t*)config0,
   (const uint8_t*)config1,
-  (const uint8_t*)config2
 };
 // And here.
 const int configLengths[] = {
   sizeof(config0)/sizeof(config0[0]),
   sizeof(config1)/sizeof(config1[0]),
-  sizeof(config2)/sizeof(config2[0])
 };
 
 const int numConfigs = sizeof(configs)/sizeof(configs[0]);
