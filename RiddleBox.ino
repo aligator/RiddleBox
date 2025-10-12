@@ -214,7 +214,7 @@ void loop() {
 
   // Then check all connections to find out if the lock is unlocked.
   bool unlocked = checkExactConfig(currentConfig);
-  if (unlocked && RELAY_PULSE != 0) {
+  if (unlocked && !relayOpen && RELAY_PULSE != 0) {
     // Wait a bit before unlocking.
     delay(1000);
   }
