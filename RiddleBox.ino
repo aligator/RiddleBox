@@ -7,6 +7,7 @@
 constexpr int PIN_SDA    = 21;   // ESP32 SDA
 constexpr int PIN_SCL    = 22;   // ESP32 SCL
 constexpr uint8_t I2C_ADDRESS = 0x20; // I2C Adress of the chip
+constexpr uint8_t I2C_ADDRESS_2 = I2C_ADDRESS + 1; // I2C Adress of the 2nd chip
 
 // Configuration i/o
 constexpr int PIN_LED    = 27;   // Status LED
@@ -21,7 +22,7 @@ constexpr int RELAY_PULSE = 200; //0;
 constexpr int EMERGENCY_UNLOCK_MS = 3000;
 
 MCP23017 mcp_1(I2C_ADDRESS);
-MCP23017 mcp_2(I2C_ADDRESS + 1);
+MCP23017 mcp_2(I2C_ADDRESS_2);
 
 // MCP Output pin configuration
 constexpr uint8_t O_A1 = 0;
@@ -95,7 +96,8 @@ const uint8_t config1[][2] = {
   {O_A3, I_C3},
   {O_B4, I_C2},
   {O_A4, I_D3},
-  {O_B5, I_D4}
+  {O_B5, I_D4},
+  {O_A5, I_C5}
 };
 
 // All available configs must be registered here.
@@ -198,11 +200,11 @@ void loop() {
       if (buttonPressedTime > EMERGENCY_UNLOCK_MS) {
         digitalWrite(PIN_LED, LOW);
 
-        // Emergency unlock - press the button for more than 5 seconds
+        // Emergency unlock - press the button for more than EMERGENCY_UNLOCK_MS
         relayOpen = false;
         unlock(true);
       } else if (buttonPressedTime > 250) {
-        // Switch config if the button was pressed less than 5 seconds.
+        // Switch config if the button was pressed less than EMERGENCY_UNLOCK_MS.
         currentConfig = (currentConfig + 1) % numConfigs;
         Serial.print("Switched to config ");
         Serial.println(currentConfig);
@@ -227,8 +229,6 @@ void loop() {
 
 // Test exactly one output-input pair
 bool pairConnected(uint8_t outPin, uint8_t inPin) {
-  
-
   // Drive selected output HIGH
   MCP23017 mcp = mapPinToMcp(outPin);
   uint8_t pin = mapMcpPin(outPin);
@@ -343,7 +343,9 @@ bool checkExactConfig(int cfgIndex) {
 // Blink LED with the number of current config
 void showConfigNumber(int number) {
   for (int i = 0; i < number; i++) {
-    digitalWrite(PIN_LED, HIGH); delay(180);
-    digitalWrite(PIN_LED, LOW);  delay(180);
+    digitalWrite(PIN_LED, HIGH);
+    delay(180);
+    digitalWrite(PIN_LED, LOW);
+    delay(180);
   }
 }
