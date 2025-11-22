@@ -53,6 +53,9 @@ drawer_clear    = 1.0;
 drawer_wall     = 3;
 // hole for the power cable
 drawer_power_hole_d = 10;
+// hole offset to the left (so that the cable does not collide with the internal electronic
+drawer_power_hole_offset_to_left = 0;
+drawer_power_hole_offset_to_top = 0;
 
 // Cable
 // Cable coutouts in the false bottom and the drawer
@@ -163,9 +166,9 @@ module drawer(){
                   hidden_h-drawer_clear], center=false);
 
         // Power cable hole in front
-        translate([(drawer_len-2*drawer_clear)/2,
+        translate([(drawer_len-2*drawer_clear)/2-drawer_power_hole_offset_to_left,
                    drawer_wall+c0,
-                   (hidden_h-drawer_clear)/2])
+                   (hidden_h-drawer_clear)/2+drawer_power_hole_offset_to_top])
             rotate([90, 0, 0])
             cylinder(d=drawer_power_hole_d, h=drawer_wall+2*c0);
         
